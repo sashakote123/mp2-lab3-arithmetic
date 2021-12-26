@@ -1,77 +1,57 @@
-// ���������� ������� � ������� ��� ���������� �������������� ���������
-#include <string>
+﻿#include <string>
 #include <vector>
-#include <sstream>
+#include <iostream>
 #include "stack.h"
+
 using namespace std;
 
-struct Operation
-{
-	char op;
-	int prior;
-};
+const string Symbols = "0123456789.()+-/* ";
 
-class Lexeme
+class Symbol
 {
 private:
-	double number;
-	Operation op;
-	int check;
-	int amount_of_arg;
+	char operation;
+	double value;
+	bool type;
 
 public:
-	Lexeme()
+	Symbol() = default;
+	Symbol(const double &_value)
 	{
+		value = _value;
+		type = true;
 	}
-	Lexeme(double num)
+	Symbol(const char &_operation)
 	{
-		number = num;
-		check = 1;
+		operation = _operation;
+		type = false;
 	}
-	Lexeme(char oper, int arg = 2)
+	void printSymbol()
 	{
-		op.op = oper;
-		if (oper == '(')
-		{
-			op.prior = 0;
-		}
-		else if (oper == ')')
-		{
-			op.prior = 1;
-		}
-		else if (oper == '+' || oper == '-')
-		{
-			op.prior = 2;
-		}
-		else if (oper == '*' || oper == '/')
-		{
-			op.prior = 3;
-		}
+		if (type)
+			std::cout << value << " ";
 		else
-		{
-			op.prior = -1; // incorrect symbol
-		}
-		amount_of_arg = arg;
-		check = 0;
+			std::cout << operation << " ";
 	}
-	bool can_go_next(vector<Lexeme> &a, int i);
-	char get_oper();
-	double get_number();
-	int get_prior();
-	bool is_op();
-	bool is_op_br();
-	bool is_cl_br();
-	bool is_number();
-	bool is_unary();
+	double getValue() { return value; }
+	char getOperation() { return operation; }
+	bool getType() { return type; }
+	int priority();
 };
 
-class Solver
+class Arithmetic
 {
 private:
-	vector<Lexeme> d;
+	vector<Symbol> smbls;
 
 public:
-	void convert_string_to_lexeme(string &s);
-	void convert_to_RPN();
-	double solve();
+	Arithmetic() = default;
+	void stringTo(string &expression);
+	void ToPostfix();
+	double calculate();
+	void print();
 };
+
+bool checkBrackets(const string &s);
+bool checkSymbols(const string &s);
+bool isCorrect(const string &s);

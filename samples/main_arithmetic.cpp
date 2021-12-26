@@ -1,39 +1,30 @@
-#include "arithmetic.h"
+// реализация пользовательского приложения
+#include <arithmetic.h>
+
+using namespace std;
 
 int main()
 {
-	Solver a;
-	int k;
-	string s;
-	bool exit = false;
-	cout << "Hello." << endl;
-again:
-	cout << "Enter the expression to calculate: ";
-	getline(cin, s);
-	while (!exit)
-	{
-		try
-		{
-			a.convert_string_to_lexeme(s);
-			a.convert_to_RPN();
-			cout << "Expression result: " << a.solve() << endl;
-			cout << "1.Enter new expression to calculate" << endl
-				 << "2.Exit" << endl;
-			cin >> k;
-			if (k == 1)
-			{
-				goto again;
-			}
-			else
-			{
-				exit = true;
-			}
+	string str;
+	for (int i = 0; i < 100; i++) {
+		try {
+			cout << "Enter your expression:\n";
+			getline(cin, str);
+			isCorrect(str);
+			Arithmetic res;
+			cout << "Your expression is:\n";
+			res.stringTo(str);
+			res.print();
+			cout << endl;
+			res.ToPostfix();
+			cout << endl;
+			double result = res.calculate();
+			cout << "Result:\n" << result << endl;
 		}
-		catch (string err)
-		{
-			cout << err << endl;
-			cout << "Please, type the expression in the right way" << endl;
-			goto again;
+		catch (char* smth) {
+			cout << smth << endl;
 		}
+		cout << endl;
 	}
+	return 0;
 }

@@ -1,100 +1,81 @@
+// ����� ��� �����
+
 #include "stack.h"
 #include <gtest.h>
 
-TEST(TStack, can_create_stack)
-{
-    ASSERT_NO_THROW(TStack<int> a);
-}
 
-TEST(TStack, can_create_stack_with_positive_length)
+TEST(Stack, can_create_stack)
 {
-    ASSERT_NO_THROW(TStack<int> a(3));
+	ASSERT_NO_THROW(TStack<int> s);
 }
-
-TEST(TStack, can_not_create_stack_with_negative_length)
+TEST(Stack, cant_create_stack_with_null_size)
 {
-    ASSERT_ANY_THROW(TStack<int> a(-3));
+	ASSERT_ANY_THROW(TStack<int> s(0));
 }
-
-TEST(TStack, can_look_at_the_top)
+TEST(Stack, can_create_copied_stack)
 {
-    TStack<double> a;
-    a.push(3.14);
-    EXPECT_EQ(a.front(), 3.14);
+	TStack<int> s;
+	ASSERT_NO_THROW(TStack<int> s1);
 }
-
-TEST(TStack, can_not_look_at_the_top_if_stack_is_empty)
+TEST(Stack, can_push_element_in_stack)
 {
-    TStack<double> a;
-    ASSERT_ANY_THROW(a.front());
+	TStack<int> s;
+	ASSERT_NO_THROW(s.push(5));
 }
-
-TEST(TStack, can_push)
+TEST(Stack, can_push_element_in_full_stack)
 {
-    TStack<int> a;
-    a.push(4);
-    EXPECT_EQ(a.size(), 1);
+	TStack<int> s(2);
+	s.push(8); s.push(2);
+	s.push(5);
+	EXPECT_EQ(5, s.getTop());
 }
-
-TEST(TStack, can_push_to_full_stack_with_memory_realloc)
+TEST(Stack, can_check_on_emptiness_for_empty_stack)
 {
-    TStack<int> a(2);
-    a.push(4);
-    a.push(1);
-    ASSERT_NO_THROW(a.push(89));
-    EXPECT_EQ(a.size(), 3);
+	TStack<int> s;
+	EXPECT_EQ(true, s.isEmpty());
 }
-
-TEST(TStack, push_to_full_stack_has_right_element_on_top)
+TEST(Stack, can_check_on_emptiness_for_not_empty_stack)
 {
-    TStack<int> a(2);
-    a.push(4);
-    a.push(1);
-    a.push(45);
-    EXPECT_EQ(a.front(), 45);
+	TStack<int> s;
+	s.push(3);
+	EXPECT_EQ(false, s.isEmpty());
 }
-
-TEST(TStack, pop_from_empty_stack_throw_error)
+TEST(Stack, can_check_on_full_for_full_stack)
 {
-    TStack<int> a;
-    ASSERT_ANY_THROW(a.pop());
+	TStack<int> s(2);
+	s.push(1); s.push(2);
+	EXPECT_EQ(true, s.isFull());
 }
-
-TEST(TStack, can_pop)
+TEST(Stack, can_check_on_full_for_not_full_stack)
 {
-    TStack<int> a;
-    a.push(4);
-    a.push(8);
-    EXPECT_EQ(a.pop(), 8);
-    EXPECT_EQ(a.size(), 1);
+	TStack<int> s;
+	EXPECT_EQ(false, s.isFull());
 }
-
-TEST(TStack, can_see_if_stack_is_empty)
+TEST(Stack, can_get_top_element_without_deletion)
 {
-    TStack<int> a;
-    EXPECT_EQ(a.is_empty(), true);
+	TStack<int> s(1);
+	const int expVal = 10;
+	bool expEmp = false;
+	s.push(expVal);
+	EXPECT_EQ(expVal, s.getTop());
+	EXPECT_EQ(expEmp, s.isEmpty());
 }
-
-TEST(TStack, can_see_if_stack_is_not_empty)
+TEST(Stack, can_pop_element)
 {
-    TStack<int> a;
-    a.push(32);
-    EXPECT_EQ(a.is_empty(), false);
+	TStack<int> s;
+	const int expVal = -9;
+	bool expEmp = true;
+	s.push(expVal);
+	EXPECT_EQ(expVal, s.pop());
+	EXPECT_EQ(expEmp, s.isEmpty());
 }
-
-TEST(TStack, can_get_stack_current_size)
+TEST(Stack, cant_pop_element_from_empty_stack)
 {
-    TStack<int> a;
-    a.push(32);
-    a.push(4);
-    EXPECT_EQ(a.size(), 2);
+	TStack<int> s;
+	ASSERT_ANY_THROW(s.pop());
 }
-
-TEST(TStack, can_clear_stack)
+TEST(Stack, cant_get_top_element_from_empty_stack)
 {
-    TStack<int> a;
-    a.push(32);
-    a.push(4);
-    a.clear();
-    EXPECT_EQ(a.is_empty(), true);
+	TStack<int> s;
+	ASSERT_ANY_THROW(s.getTop());
 }

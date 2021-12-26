@@ -1,437 +1,261 @@
-// реализация функций и классов для вычисления арифметических выражений
-#include "arithmetic.h"
-
-bool Lexeme::is_unary()
+﻿#include "../include/arithmetic.h"
+void Arithmetic::stringTo(string &expression)
 {
-	return amount_of_arg == 1;
-}
-
-char Lexeme::get_oper()
-{
-	return op.op;
-}
-
-double Lexeme::get_number()
-{
-	return number;
-}
-
-int Lexeme::get_prior()
-{
-	return op.prior;
-}
-
-bool Lexeme::is_op()
-{
-	return ((check == 0) && (op.prior != -1));
-}
-
-bool Lexeme::is_number()
-{
-	return check == 1;
-}
-
-bool Lexeme::is_op_br()
-{
-	return op.op == '(';
-}
-
-bool Lexeme::is_cl_br()
-{
-	return op.op == ')';
-}
-
-bool Lexeme::can_go_next(vector<Lexeme> &a, int i)
-{
-	// max i = a.size() - 1
-	if (a[i].is_number())
+	unsigned length = expression.length();
+	string stringForNumber;
+	double doubleNumber;
+	unsigned i = 0;
+	while (i < length)
 	{
-		return a[i + 1].op.op != '('; //((a[i + 1].is_op()) && (a[i + 1].op.op != '('));
+		if (expression[i] == ' ')
+			i++;
+		if (expression[i] == '+' || expression[i] == '*' || expression[i] == '/')
+		{
+			Symbol operation(expression[i]);
+			smbls.push_back(operation);
+			i++;
+		}
+		else if (expression[i] == '-')
+		{
+			if (i == 0)
+			{
+				Symbol unary_minus('_');
+				smbls.push_back(unary_minus);
+				i++;
+				continue;
+			}
+			if (i > 0)
+			{
+				if (smbls[i - 1].getOperation() != ')' && smbls[i - 1].getType() == false)
+				{
+					Symbol unary_minus('_');
+					smbls.push_back(unary_minus);
+					i++;
+				}
+				else
+				{
+					Symbol minus('-');
+					smbls.push_back(minus);
+					i++;
+				}
+			}
+		}
+		else if (expression[i] >= '0' && expression[i] <= '9' || (expression[i] == '.'))
+		{
+			int pointCounter = 0;
+			while (expression[i] >= '0' && expression[i] <= '9' || (expression[i] == '.'))
+			{
+				stringForNumber += expression[i];
+				i++;
+				if (expression[i] == '.')
+				{
+					pointCounter++;
+				}
+				if (pointCounter > 1)
+				{
+					throw "More than one point in the number";
+				}
+			}
+			doubleNumber = stof(stringForNumber);
+			Symbol number(doubleNumber);
+			smbls.push_back(number);
+			stringForNumber.clear();
+		}
+		else if (expression[i] == ')' || expression[i] == '(')
+		{
+			Symbol bracket(expression[i]);
+			smbls.push_back(bracket);
+			i++;
+		}
+	}
+}
+
+void Arithmetic::ToPostfix()
+{
+	unsigned size = smbls.size();
+	vector<Symbol> postfix;
+	TStack<Symbol> operations;
+	for (unsigned i = 0; i < size; i++)
+	{
+		if (smbls[i].getType() == true)
+			postfix.push_back(smbls[i]);
+		else
+		{
+			if (smbls[i].getOperation() == '(')
+			{
+				operations.push(smbls[i]);
+				continue;
+			}
+			else if (smbls[i].getOperation() == ')')
+			{
+				while (operations.getTop().getOperation() != '(')
+				{
+					postfix.push_back(operations.pop());
+				}
+				operations.pop();
+				continue;
+			}
+
+			if (i > 0 && smbls[i].getOperation() == '_' && smbls[i].getOperation() == '_')
+				operations.push(smbls[i]);
+			else
+			{
+				while (!operations.isEmpty() && operations.getTop().priority() >= smbls[i].priority())
+					postfix.push_back(operations.pop());
+				operations.push(smbls[i]);
+			}
+		}
+	}
+	while (!operations.isEmpty())
+	{
+		postfix.push_back(operations.pop());
+	}
+	smbls = postfix;
+}
+
+void Arithmetic::print()
+{
+	for (size_t i = 0; i < smbls.size(); i++)
+	{
+		Symbol lexeme(smbls[i]);
+		lexeme.printSymbol();
+	}
+}
+
+int Symbol::priority()
+{
+	if (operation == '(' || operation == ')')
+	{
+		return 0;
+	}
+	else if (operation == '+' || operation == '-')
+	{
+		return 1;
+	}
+	else if (operation == '*' || operation == '/')
+	{
+		return 2;
+	}
+	else if (operation == '_')
+	{
+		return 3;
 	}
 	else
-	{
-		if (a[i].is_op_br())
-		{
-			return (a[i + 1].is_number() || a[i + 1].is_op_br() || a[i + 1].is_unary());
-		}
-		else if (a[i].is_cl_br())
-		{
-			return (!a[i + 1].is_op_br() && !a[i + 1].is_number());
-		}
-		else // clear operation:'+','-','*','/'
-		{
-			return a[i + 1].is_op_br() || a[i + 1].is_number() || a[i + 1].is_unary();
-		}
-	}
+		throw "Priority problem";
 }
 
-void Solver::convert_string_to_lexeme(string &s)
+double Arithmetic::calculate()
 {
-	int i = 0, count = 0;
-	string temp;
-	double num;
-	for (int i = 0; i < s.size(); i++) // deleting spaces
+	TStack<Symbol> stack;
+	Symbol termOperand1, termOperand2;
+	double operand1, operand2, res;
+	for (unsigned i = 0; i < smbls.size(); i++)
 	{
-		while (s[i] == ' ')
+		if (smbls[i].getType() == true)
+			stack.push(smbls[i].getValue());
+		else if (smbls[i].getOperation() == '_')
 		{
-			s.erase(i, 1);
+			res = (-1) * stack.pop().getValue();
+			stack.push(res);
+			continue;
+		}
+		else
+		{
+			termOperand2 = stack.pop();
+			termOperand1 = stack.pop();
+			operand1 = termOperand1.getValue();
+			operand2 = termOperand2.getValue();
+			if (smbls[i].getOperation() == '+')
+				res = operand1 + operand2;
+			if (smbls[i].getOperation() == '-')
+				res = operand1 - operand2;
+			if (smbls[i].getOperation() == '*')
+				res = operand1 * operand2;
+			if (smbls[i].getOperation() == '/')
+			{
+				if (operand2 == 0)
+					throw "Division by 0";
+				res = operand1 / operand2;
+			}
+
+			stack.push(res);
 		}
 	}
-	while (i < s.size())
+	Symbol result = stack.pop();
+	return result.getValue();
+}
+bool checkBrackets(const string &s)
+{
+	bool flag = true;
+	int count = 0, stringSize = s.length();
+	for (int i = 0; i < stringSize; i++)
 	{
-		if (s[i] >= '0' && s[i] <= '9')
-		{
-			bool dot = false;
-			temp = "";
-			while ((i < s.size()) && ((s[i] >= '0' && s[i] <= '9') || (s[i] == '.')))
-			{
-				if (s[i] == '.' && dot)
-				{
-					string err;
-					err = "Number has two or more dots in it";
-					d.clear();
-					throw err;
-				}
-				if (s[i] == '.')
-				{
-					dot = true;
-				}
-				temp += s[i];
-				i++;
-			}
-			num = stod(temp, 0);
-			Lexeme a(num);
-			d.push_back(a);
-			continue;
-		}
-		if (s[i] == '/')
-		{
-			Lexeme a('/');
-			d.push_back(a);
-			i++;
-			continue;
-		}
-		if (s[i] == '*')
-		{
-			Lexeme a('*');
-			d.push_back(a);
-			i++;
-			continue;
-		}
-		if (s[i] == '+')
-		{
-			Lexeme a('+');
-			d.push_back(a);
-			i++;
-			continue;
-		}
 		if (s[i] == '(')
 		{
-			Lexeme a('(');
-			d.push_back(a);
-			i++;
-			continue;
+			count++;
+			flag = false;
+			if (i < stringSize && s[i + 1] == '+' || s[i + 1] == '-' || s[i + 1] == '*' || s[i + 1] == '/')
+			{
+				throw "Operation after opening bracket";
+			}
+			if (i > 0 && s[i - 1] >= '0' && s[i] <= '9')
+			{
+				throw "Number before opening bracket";
+			}
 		}
 		if (s[i] == ')')
 		{
-			Lexeme a(')');
-			d.push_back(a);
-			i++;
-			continue;
-		}
-		if (s[i] == '-')
-		{
-			bool dot = false;
-			bool unary = false;
-			temp = "";
-			count = 0;
-			count++;
-			if (i == 0) // -
-			{
-				unary = true;
-			}
-			else if (s[i - 1] == '(' || s[i - 1] == '/' || s[i - 1] == '*' || s[i - 1] == '+')
-			{
-				unary = true;
-			}
-
-			if (i + 1 < s.size())
-			{
-
-				while (i + 1 < s.size() && s[i + 1] == '-')
-				{
-					count++;
-					i++;
-				}
-
-				if (count % 2 == 1 && !unary)
-				{
-					Lexeme a('-');
-					d.push_back(a);
-					i++;
-					continue;
-				}
-				else if (count % 2 == 0 && !unary)
-				{
-					Lexeme a('+');
-					d.push_back(a);
-					i++;
-					continue;
-				}
-				else if (count % 2 == 1 && unary)
-				{
-					temp = "-";
-				}
-				// - : '(',number,'-'
-				if (i + 1 < s.size() && s[i + 1] == '(') // "..-(.."
-				{
-					Lexeme a('-', 1); // unary minus
-					d.push_back(a);
-					i++;
-					continue;
-				}
-
-				if (i + 1 < s.size() && s[i + 1] >= '0' && s[i + 1] <= '9') // "..-2.34.."
-				{
-					i++;
-					while ((i < s.size()) && ((s[i] >= '0' && s[i] <= '9') || (s[i] == '.')))
-					{
-						if (s[i] == '.' && dot)
-						{
-							string err;
-							err = "Number has two or more dots in it";
-							d.clear();
-							throw err;
-						}
-						if (s[i] == '.')
-						{
-							dot = true;
-						}
-						temp += s[i];
-						i++;
-					}
-					num = stod(temp, 0);
-					Lexeme a(num);
-					d.push_back(a);
-					continue;
-				}
-				else
-				{
-					string err;
-					err = "Wrong operation order after minus (no number or bracket)";
-					d.clear();
-					throw err; // 2---- or 2----/
-				}
-			}
-			// else
-			//{
-			//	// throw actually
-			//	Lexeme a('-');
-			//	d.push_back(a);
-			//	i++;
-			//	continue;
-			// }
-		}
-		else
-		{
-			string err;
-			err = "Incorrect symbol";
-			d.clear();
-			throw err;
-		}
-	}
-}
-
-void Solver::convert_to_RPN()
-{
-	int count = 0;
-
-	// brackets check
-	for (int i = 0; i < d.size(); i++)
-	{
-		if (d[i].is_op_br())
-		{
-			count++;
-		}
-		if (d[i].is_cl_br())
-		{
 			count--;
+			flag = true;
 		}
 	}
-	if (count != 0)
+	return (flag == true && count == 0);
+}
+bool checkSymbols(const string &s)
+{
+	bool flag = false;
+	int stringSize = s.length(), allowedTermsSize = Symbols.length();
+	for (int i = 0; i < stringSize; i++)
 	{
-		string err;
-		err = "Wrong amount of brackets";
-		d.clear();
-		throw err;
-	}
-
-	// syntax check
-	if (d[0].is_op() && !d[0].is_op_br() && !d[0].is_unary())
-	{
-		string err;
-		err = "Expression can not start with operations such as '+','*','/',')'";
-		d.clear();
-		throw err;
-	}
-	if (d.back().is_op())
-	{
-		if (!d.back().is_cl_br())
+		for (int j = 0; j < allowedTermsSize; j++)
 		{
-			string err;
-			err = "Binary operation in the end of the expression";
-			d.clear();
-			throw err;
-		}
-	}
-	for (int i = 0; i < d.size() - 1; i++)
-	{
-		if (!d[i].can_go_next(d, i))
-		{
-			string err = "";
-			if (d[i].is_number())
+			if (s[i] != Symbols[j])
 			{
-				err += d[i].get_number();
-				err += " can't go before ";
-				err += d[i + 1].get_oper();
-				d.clear();
-				throw err;
-			}
-			else if (d[i].is_op())
-			{
-				err += d[i].get_oper();
-				err += " can't go before ";
-				if (d[i + 1].is_number())
-				{
-					err += d[i + 1].get_number();
-				}
-				else if (d[i + 1].is_op())
-				{
-					err += d[i + 1].get_oper();
-				}
-				d.clear();
-				throw err;
-			}
-		}
-	}
-
-	vector<Lexeme> input;
-	TStack<Lexeme> b;
-	for (int i = 0; i < d.size(); i++)
-	{
-		if (d[i].is_number())
-		{
-			input.push_back(d[i]);
-		}
-		else if (d[i].is_op())
-		{
-			if (d[i].is_op_br())
-			{
-				b.push(d[i]);
+				flag = false;
 				continue;
 			}
-			if (d[i].is_cl_br())
-			{
-				while (!b.front().is_op_br())
-				{
-					input.push_back(b.pop());
-				}
-				b.pop(); // pop '('
-			}
-		gh:
-			if (b.is_empty() || b.front().get_prior() < d[i].get_prior() || d[i].is_unary())
-			{
-				if (!d[i].is_cl_br())
-				{
-					b.push(d[i]);
-				}
-			}
 			else
 			{
-				while (!b.is_empty() && b.front().get_prior() >= d[i].get_prior())
-				{
-					input.push_back(b.pop());
-				}
-				goto gh;
+				flag = true;
+				break;
 			}
 		}
+		if (flag)
+			continue;
+		else
+			return false;
 	}
-	while (!b.is_empty())
-	{
-		input.push_back(b.pop());
-	}
-	d = input;
+	return true;
 }
 
-double Solver::solve()
+bool isCorrect(const string &s)
 {
-	TStack<Lexeme> b;
-	Lexeme a, c;
-	for (int i = 0; i < d.size(); i++)
+	if (!checkBrackets(s))
 	{
-		if (d[i].is_number())
-		{
-			b.push(d[i]);
-		}
-		else
-		{
-			if (d[i].is_unary())
-			{
-				a = b.pop();
-			}
-			else
-			{
-				a = b.pop();
-				c = b.pop();
-			}
-			switch (d[i].get_oper())
-			{
-			case '+':
-			{
-				Lexeme temp(c.get_number() + a.get_number());
-				b.push(temp);
-				break;
-			}
-			case '-':
-			{
-				if (d[i].is_unary())
-				{
-					Lexeme temp(-a.get_number());
-					b.push(temp);
-					break;
-				}
-				else
-				{
-					Lexeme temp(c.get_number() - a.get_number());
-					b.push(temp);
-					break;
-				}
-			}
-			case '*':
-			{
-				Lexeme temp(c.get_number() * a.get_number());
-				b.push(temp);
-				break;
-			}
-			case '/':
-			{
-				if (a.get_number() == 0.0) // compare with eps. probably??
-				{
-					string err;
-					err = "Division by zero";
-					d.clear();
-					throw err;
-				}
-				else
-				{
-					Lexeme temp(c.get_number() / a.get_number());
-					b.push(temp);
-					break;
-				}
-			}
-			}
-		}
+		throw "Bracket in your expression are wrong";
 	}
-	d.clear();
-	return b.pop().get_number();
+	else if (!checkSymbols(s))
+	{
+		throw "You should use only allowed symbols: 0123456789.()+-/* ";
+	}
+	else if (s[0] == '+' || s[0] == '*' || s[0] == '/')
+	{
+		throw "Operation is on the first place in the expression";
+	}
+	else if (s[s.length() - 1] == '+' || s[s.length() - 1] == '-' || s[s.length() - 1] == '*' || s[s.length() - 1] == '/')
+	{
+		throw "Operation is at the end of the expression";
+	}
+	else
+		return true;
 }
