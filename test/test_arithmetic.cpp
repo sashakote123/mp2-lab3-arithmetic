@@ -142,7 +142,7 @@ TEST(arithmetic, spaces_check_2)
 {
 	Arithmetic a;
 	string s;
-	s = "8.345 / 8.345 + ( 4.-9.125 ) +   9.125";
+	s = "8.345 / 8.345 +  4.-9.125  +   9.125";
 	a.stringTo(s);
 	a.ToPostfix();
 	EXPECT_NEAR(5.0, a.calculate(), EPS);

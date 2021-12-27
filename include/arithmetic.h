@@ -7,8 +7,7 @@ using namespace std;
 
 const string Symbols = "0123456789.()+-/* ";
 
-class Symbol
-{
+class Symbol{
 private:
 	char operation;
 	double value;
@@ -16,18 +15,15 @@ private:
 
 public:
 	Symbol() = default;
-	Symbol(const double &_value)
-	{
+	Symbol(const double &_value){
 		value = _value;
 		type = true;
 	}
-	Symbol(const char &_operation)
-	{
+	Symbol(const char &_operation){
 		operation = _operation;
 		type = false;
 	}
-	void printSymbol()
-	{
+	void printSymbol(){
 		if (type)
 			std::cout << value << " ";
 		else
@@ -39,8 +35,7 @@ public:
 	int priority();
 };
 
-class Arithmetic
-{
+class Arithmetic{
 private:
 	vector<Symbol> smbls;
 

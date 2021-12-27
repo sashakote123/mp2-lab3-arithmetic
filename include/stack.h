@@ -10,8 +10,7 @@ private:
 public:
 	// constructors
 	TStack() { stackSize = 100; data = new ValType[stackSize]; top = -1; }
-	TStack(int _size) 
-	{ 
+	TStack(int _size) { 
 		if (!_size) throw "Can't have null size";
 		stackSize = _size; data = new ValType[stackSize]; top = -1;
 	}
