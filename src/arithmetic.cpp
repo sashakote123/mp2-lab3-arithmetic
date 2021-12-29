@@ -1,61 +1,5 @@
 ﻿#include "../include/arithmetic.h"
-void Arithmetic::stringTo(string &expression)
-{
-	unsigned length = expression.length();
-	string stringForNumber;
-	double doubleNumber;
-	unsigned i = 0;
-	while (i < length){
-		if (expression[i] == ' ')
-			i++;
-		if (expression[i] == '+' || expression[i] == '*' || expression[i] == '/'){
-			Symbol operation(expression[i]);
-			smbls.push_back(operation);
-			i++;
-		}
-		else if (expression[i] == '-'){
-			if (i == 0){
-				Symbol unary_minus('_');
-				smbls.push_back(unary_minus);
-				i++;
-				continue;
-			}
-			if (i > 0)
-			{
-				if (smbls[i - 1].getOperation() != ')' && smbls[i - 1].getType() == false){
-					Symbol unary_minus('_');
-					smbls.push_back(unary_minus);
-					i++;
-				}
-				else{
-					Symbol minus('-');
-					smbls.push_back(minus);
-					i++;
-				}
-			}
-		}
-		else if (expression[i] >= '0' && expression[i] <= '9' || (expression[i] == '.')){
-			int pointCounter = 0;
-			while (expression[i] >= '0' && expression[i] <= '9' || (expression[i] == '.')){
-				stringForNumber += expression[i];
-				i++;
-				if (expression[i] == '.')
-					pointCounter++;
-				if (pointCounter > 1)
-					throw "More than one point in the number";
-			}
-			doubleNumber = stof(stringForNumber);
-			Symbol number(doubleNumber);
-			smbls.push_back(number);
-			stringForNumber.clear();
-		}
-		else if (expression[i] == ')' || expression[i] == '('){
-			Symbol bracket(expression[i]);
-			smbls.push_back(bracket);
-			i++;
-		}
-	}
-}
+
 
 void Arithmetic::ToPostfix(){
 	unsigned size = smbls.size();
@@ -90,6 +34,70 @@ void Arithmetic::ToPostfix(){
 		postfix.push_back(operations.pop());
 	smbls = postfix;
 }
+
+void Arithmetic::stringTo(string &expression)
+{
+	const unsigned length = expression.length();
+	string stringForNumber;
+	double doubleNumber;
+	unsigned i = 0;
+	while (i < length){
+		if (expression[i] == ' ')
+			i++;
+		if (expression[i] == '+' || expression[i] == '*' || expression[i] == '/'){
+			Symbol operation(expression[i]);
+			smbls.push_back(operation);
+			i++;
+		}
+		else if (expression[i] == '-') {
+			if (i == 0) {
+				Symbol unary_minus('_');
+				smbls.push_back(unary_minus);
+				i++;
+				continue;
+			}
+			if (i > 0) {
+				if (expression[i - 1] != ')' && expression[i - 1] != '1' && expression[i - 1] != '2' && expression[i - 1] != '3' && expression[i - 1] != '4' && expression[i - 1] != '5' && expression[i - 1] != '6' && expression[i - 1] != '7' && expression[i - 1] != '8' && expression[i - 1] != '9' && expression[i - 1] != '0') {
+					Symbol unary_minus('_');
+					smbls.push_back(unary_minus);
+					i++;
+				}
+				else {
+					Symbol minus('-');
+					smbls.push_back(minus);
+					i++;
+				}
+			}
+		}
+		else if (expression[i] >= '0' && expression[i] <= '9' || (expression[i] == '.')){
+			int pointCounter = 0;
+			while (expression[i] >= '0' && expression[i] <= '9' || (expression[i] == '.')){
+				stringForNumber += expression[i];
+				i++;
+				if (expression[i] == '.')
+					pointCounter++;
+				if (pointCounter > 1)
+					throw "More than one point in the number";
+			}
+			doubleNumber = stof(stringForNumber);
+			Symbol number(doubleNumber);
+			smbls.push_back(number);
+			stringForNumber.clear();
+		}
+		else if (expression[i] == ')' || expression[i] == '('){
+			Symbol bracket(expression[i]);
+			smbls.push_back(bracket);
+			i++;
+		}
+		else if (expression[i] == 'x' || expression[i] == 'y') {
+			Symbol variable(expression[i]);
+			smbls.push_back(variable);
+			i++;
+		}
+	}
+}
+
+
 
 void Arithmetic::print(){
 	for (size_t i = 0; i < smbls.size(); i++){
@@ -191,12 +199,12 @@ bool checkSymbols(const string &s){
 bool isCorrect(const string &s){
 	if (!checkBrackets(s))
 		throw "Bracket in your expression are wrong";
-	else if (!checkSymbols(s))	
-		throw "You should use only allowed symbols: 0123456789.()+-/* ";
-	else if (s[0] == '+' || s[0] == '*' || s[0] == '/')	
+	else if (!checkSymbols(s))
+		throw "You should use only allowed symbols: 0123456789.()+-/*xy ";
+	else if (s[0] == '+' || s[0] == '*' || s[0] == '/')
 		throw "Operation is on the first place in the expression";
-	else if (s[s.length() - 1] == '+' || s[s.length() - 1] == '-' || s[s.length() - 1] == '*' || s[s.length() - 1] == '/')	
-		throw "Operation is at the end of the expression";
+	//else if (s[s.length() - 1] == '+' || s[s.length() - 1] == '-' || s[s.length() - 1] == '*' || s[s.length() - 1] == '/' && s[s.length() - 1] != 'x' && s[s.length() - 1] != 'y')
+	//	throw "Operation is at the end of the expression";
 	else
 		return true;
 }

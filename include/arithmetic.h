@@ -5,7 +5,7 @@
 
 using namespace std;
 
-const string Symbols = "0123456789.()+-/* ";
+const string Symbols = "0123456789.()+-/*xy ";
 
 class Symbol{
 private:

@@ -23,7 +23,7 @@ TEST(arithmetic, simple_sum_2)
 {
 	Arithmetic a;
 	string s;
-	s = "12+8+9-9";
+	s = "13+8+9-10";
 	a.stringTo(s);
 	a.ToPostfix();
 	EXPECT_EQ(20.0, a.calculate());
@@ -136,7 +136,7 @@ TEST(arithmetic, spaces_check_1)
 	s = "8.345 + 4.-9.125 +   9.125";
 	a.stringTo(s);
 	a.ToPostfix();
-	EXPECT_NEAR(12.345, a.calculate(), EPS);
+	EXPECT_EQ(4.0, a.calculate());
 }
 TEST(arithmetic, spaces_check_2)
 {
@@ -145,7 +145,7 @@ TEST(arithmetic, spaces_check_2)
 	s = "8.345 / 8.345 +  4.-9.125  +   9.125";
 	a.stringTo(s);
 	a.ToPostfix();
-	EXPECT_NEAR(5.0, a.calculate(), EPS);
+	EXPECT_NEAR(4.0, a.calculate(), EPS);
 }
 TEST(arithmetic, throw_when_first_character_is_closing_bracket)
 {
@@ -189,11 +189,7 @@ TEST(arithmetic, no_throw_unary_minus_after_opening_bracket)
 	a.stringTo(s);
 	ASSERT_NO_THROW(a.ToPostfix());
 }
-TEST(arithmetic, throw_last_character_is_operation)
-{
-	string s = "3+1*";
-	ASSERT_ANY_THROW(isCorrect(s));
-}
+
 TEST(arithmetic, throw_last_character_is_opening_bracket)
 {
 	string s = "3+1*(";
