@@ -133,10 +133,10 @@ TEST(arithmetic, spaces_check_1)
 {
 	Arithmetic a;
 	string s;
-	s = "8.345 + 4.-9.125 +   9.125";
+	s = "8.345 + 4.-9.125 +  9.125";
 	a.stringTo(s);
 	a.ToPostfix();
-	EXPECT_EQ(4.0, a.calculate());
+	EXPECT_NEAR(12.345, a.calculate(), EPS);
 }
 TEST(arithmetic, spaces_check_2)
 {
@@ -145,7 +145,7 @@ TEST(arithmetic, spaces_check_2)
 	s = "8.345 / 8.345 +  4.-9.125  +   9.125";
 	a.stringTo(s);
 	a.ToPostfix();
-	EXPECT_NEAR(4.0, a.calculate(), EPS);
+	EXPECT_NEAR(5.0, a.calculate(), EPS);
 }
 TEST(arithmetic, throw_when_first_character_is_closing_bracket)
 {
@@ -210,4 +210,10 @@ TEST(arithmetic, too_many_dots)
 	string s;
 	s = "6 / 3.2.1 + 4.98";
 	ASSERT_ANY_THROW(a.stringTo(s));
+}
+
+TEST(arithmetic, throw_last_character_is_operation)
+{
+	string s = "3+1*";
+	ASSERT_ANY_THROW(isCorrect(s));
 }

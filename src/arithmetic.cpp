@@ -57,7 +57,7 @@ void Arithmetic::stringTo(string &expression)
 				continue;
 			}
 			if (i > 0) {
-				if (expression[i - 1] != ')' && expression[i - 1] != '1' && expression[i - 1] != '2' && expression[i - 1] != '3' && expression[i - 1] != '4' && expression[i - 1] != '5' && expression[i - 1] != '6' && expression[i - 1] != '7' && expression[i - 1] != '8' && expression[i - 1] != '9' && expression[i - 1] != '0') {
+				if (expression[i - 1] != ')' && expression[i - 1] != '1' && expression[i - 1] != '2' && expression[i - 1] != '3' && expression[i - 1] != '4' && expression[i - 1] != '5' && expression[i - 1] != '6' && expression[i - 1] != '7' && expression[i - 1] != '8' && expression[i - 1] != '9' && expression[i - 1] != '0'&&expression[i-1]!='.') {
 					Symbol unary_minus('_');
 					smbls.push_back(unary_minus);
 					i++;
@@ -203,8 +203,10 @@ bool isCorrect(const string &s){
 		throw "You should use only allowed symbols: 0123456789.()+-/*xy ";
 	else if (s[0] == '+' || s[0] == '*' || s[0] == '/')
 		throw "Operation is on the first place in the expression";
-	//else if (s[s.length() - 1] == '+' || s[s.length() - 1] == '-' || s[s.length() - 1] == '*' || s[s.length() - 1] == '/' && s[s.length() - 1] != 'x' && s[s.length() - 1] != 'y')
-	//	throw "Operation is at the end of the expression";
+
+	else if (s[s.length() - 1] == '+' || s[s.length() - 1] == '-' || s[s.length() - 1] == '*' || s[s.length() - 1] == '/')
+		throw "Operation is at the end of the expression";
+	
 	else
 		return true;
 }
